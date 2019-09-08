@@ -3,9 +3,10 @@ const bcrypt = require('bcryptjs');
 const _ = require('underscore');
 const app = express();
 const Usuario = require('../models/usuarios');
+const { verificaToken, verificaRol_Admin } = require('../middlewares/autenticacion');
 
 
-app.post('/usuario', function(req, res) {
+app.post('/usuario', [verificaToken, verificaRol_Admin], function(req, res) {
     let persona = req.body;
 
     let usuario = new Usuario({
@@ -32,7 +33,7 @@ app.post('/usuario', function(req, res) {
 
 
 });
-app.put('/usuario/:id', function(req, res) {
+app.put('/usuario/:id', [verificaToken, verificaRol_Admin], function(req, res) {
     let id = req.params.id;
     let body = _.pick(req.body, ['nombre', 'email', 'role', 'estado', 'img']);
 
@@ -54,7 +55,7 @@ app.put('/usuario/:id', function(req, res) {
 
 });
 
-app.get('/usuario', function(req, res) {
+app.get('/usuario', verificaToken, function(req, res) {
 
     let desde = req.query.desde || 0;
     let limite = req.query.limite || 0;
@@ -72,7 +73,7 @@ app.get('/usuario', function(req, res) {
                     message: err
                 })
             }
-            Usuario.count({ estado: true }, (err, conteo) => {
+            Usuario.countDocuments({ estado: true }, (err, conteo) => {
                 res.json({
                     ok: true,
                     usuario,
@@ -87,7 +88,7 @@ app.get('/usuario', function(req, res) {
 });
 
 
-app.delete('/usuario/:id', function(req, res) {
+app.delete('/usuario/:id', [verificaToken, verificaRol_Admin], function(req, res) {
 
     let id = req.params.id;
     let body = _.pick(req.body, ['estado']);
